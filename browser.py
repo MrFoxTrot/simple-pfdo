@@ -45,7 +45,8 @@ class Browser:
         # Страница 1 (Проверка сертификата)
         self.browser.get("https://yar.pfdo.ru/app/contracts/create")
 
-        assert "Создать запись" in self.browser.title
+        if "Создать запись" not in self.browser.title:
+            raise Exception(f"{pfdo_number} - Произошла внутренняя ошибка сервера!")
         pfdo_element = self.browser.find_element_by_name("certificate_number")
         pfdo_element.clear()
 
@@ -56,7 +57,8 @@ class Browser:
 
         sleep(0.5)
 
-        assert f"Сертификат {pfdo_number} не найден" not in self.browser.page_source, f"{pfdo_number} - не найден!"
+        if f"Сертификат {pfdo_number} не найден" in self.browser.page_source:
+            raise Exception(f"{pfdo_number} - не найден!")
 
         # Проверка элементов ФИО на их налчие
         try:
@@ -64,7 +66,8 @@ class Browser:
             firstname_element = self.get_fio_elem(2)
             middlename_element = self.get_fio_elem(3)
         except NoSuchElementException:
-            raise Exception(f"{pfdo_number} - требуется ввод дополнительного кода!")
+            raise Exception(
+                f"{pfdo_number} - требуется ввод дополнительного кода!")
 
         # Ввод ФИО Ребенка
         surname_element.send_keys(surname)
@@ -80,8 +83,13 @@ class Browser:
             raise Exception(f"{pfdo_number} - Неверные ФИО!")
 
         # Переход на следующую страницу
-        self.browser.find_element_by_xpath("//button[contains(@class,'success')]").click()
-        sleep(1)
+        try:
+            self.browser.find_element_by_xpath(
+                "//button[contains(@class,'success')]").click()
+            sleep(1)
+        except NoSuchElementException:
+            raise Exception(
+                f"{pfdo_number} - Произошла внутренняя ошибка сервера!")
 
         # Страница 2 (Группа)
 
@@ -118,16 +126,19 @@ class Browser:
 
         # Проверка на наличие в программе ученика
         if "Вы уже подали заявку на обучение по программе" in self.browser.page_source:
-            Exception(f"{pfdo_number} - Уже добавлен!")
+            raise Exception(f"{pfdo_number} - Уже добавлен!")
 
         # Переход на след. страницу
-        self.browser.find_element_by_xpath("//div[contains(@class,'v-card__text')]/button[2]").click()
+        self.browser.find_element_by_xpath(
+            "//div[contains(@class,'v-card__text')]/button[2]").click()
         sleep(1)
 
         # Страница 3 (тип создания заявки)
-        self.browser.find_element_by_xpath("//div[@class='v-radio theme--light']").click()
+        self.browser.find_element_by_xpath(
+            "//div[@class='v-radio theme--light']").click()
         sleep(0.1)
-        self.browser.find_element_by_xpath(f"//div[@class='mt-2']/button[2]").click()
+        self.browser.find_element_by_xpath(
+            f"//div[@class='mt-2']/button[2]").click()
         sleep(1)
 
         # Страница 4 (Выбор даты)
@@ -141,7 +152,8 @@ class Browser:
         sleep(0.5)
 
         # Выбрать дату
-        self.browser.find_element_by_xpath(f"//table//div[text()='{self.contract_date.day}']").click()
+        self.browser.find_element_by_xpath(
+            f"//table//div[text()='{self.contract_date.day}']").click()
         sleep(0.2)
 
         # Подтвердить
@@ -169,12 +181,14 @@ class Browser:
         sleep(1)
 
         # Получение сведений об группе
-        group_name = self.browser.find_element_by_xpath('//span[@class="title"]').text
+        group_name = self.browser.find_element_by_xpath(
+            '//span[@class="title"]').text
         group_amount = self.browser.find_element_by_xpath(
             '//div[@class="v-list-item theme--light"][5]/div/div[2]/span').text
 
         # Переход на список учеников группы
-        self.browser.find_element_by_xpath(f"//div[@class='v-slide-group__content v-tabs-bar__content']/a[4]").click()
+        self.browser.find_element_by_xpath(
+            f"//div[@class='v-slide-group__content v-tabs-bar__content']/a[4]").click()
         sleep(3)
 
         # Получение списка группы
@@ -184,12 +198,12 @@ class Browser:
         if not self.check_exists_by_xpath(
                 "//div[@class='v-data-footer__icons-after']/button[contains(@class,'v-btn--disabled')]"):
             # Если есть переход на доп. страницу и подгрузка данных
-            self.browser.find_element_by_xpath("//div[@class='v-data-footer__icons-after']/button").click()
+            self.browser.find_element_by_xpath(
+                "//div[@class='v-data-footer__icons-after']/button").click()
             sleep(1)
             # Дополение списка группы учениками
             members += self.browser.find_elements_by_xpath("//table//td[2]")
 
-        # !!!!
         members = map(lambda x: x.text, members)
 
         return [group_name, members, int(group_amount)]
@@ -206,7 +220,8 @@ class Browser:
             f"//div[@class='verification-method-fio']/div[{id}]//input")
 
     def list_item_choose(self):
-        self.browser.find_element_by_xpath("//div[@class='v-list-item__title']/span").click()
+        self.browser.find_element_by_xpath(
+            "//div[@class='v-list-item__title']/span").click()
         pass
 
     def close(self):

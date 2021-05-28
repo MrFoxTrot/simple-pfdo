@@ -12,6 +12,7 @@ from datetime import datetime
 
 PROGRAM = "Это должен знать каждый"
 MODULE = "Это должен"
+DATE_ADD = datetime(2021, 6, 1)
 
 
 def main(args):
@@ -40,7 +41,7 @@ def main(args):
 
 def add_contract(browser, wordbook):
     browser.add_contract_setup(
-        program=PROGRAM, module=MODULE, contract_date=datetime(2021, 6, 1))
+        program=PROGRAM, module=MODULE, contract_date=DATE_ADD)
     for row in wordbook.active.iter_rows(min_row=2, max_col=5, values_only=True):
         if row[0] is None:
             continue
