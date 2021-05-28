@@ -12,6 +12,10 @@ class ContractTypes(Enum):
     Paid = 2
 
 
+months_names = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+                'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь']
+
+
 class Browser:
     def __init__(self):
         self.browser = webdriver.Chrome()
@@ -147,8 +151,32 @@ class Browser:
             "//div[contains(@class,'create-contract')]//div[@class='v-input__control']").click()
         sleep(0.2)
 
-        # Выбрать следующий месяц
-        self.browser.find_element_by_xpath("//div[contains(@class,'v-date-picker-header')]/button[2]").click()
+        # Выбрать необходимый месяц
+        target_month_year_string = f"{months_names[self.contract_date.month-1]} {self.contract_date.year} г."
+        selected_month_year_string = self.browser.find_element_by_xpath(
+            "//div[contains(@class,'v-date-picker-header')]/div/button").text
+        selected_year = int(selected_month_year_string.split(" ")[1])
+        selected_month = months_names.index(
+            selected_month_year_string.split(" ")[0]) + 1
+
+        previous_month_button = self.browser.find_element_by_xpath(
+            "//div[contains(@class,'v-date-picker-header')]/button[1]")
+        next_month_button = self.browser.find_element_by_xpath(
+            "//div[contains(@class,'v-date-picker-header')]/button[2]")
+
+        while selected_month_year_string != target_month_year_string:
+            if self.contract_date.year < selected_year or self.contract_date.month < selected_month:
+                previous_month_button.click()
+            else:
+                next_month_button.click()
+
+            sleep(1)
+            selected_month_year_string = self.browser.find_element_by_xpath(
+                "//div[contains(@class,'v-date-picker-header')]/div/button").text
+            selected_year = int(selected_month_year_string.split(" ")[1])
+            selected_month = months_names.index(
+                selected_month_year_string.split(" ")[0])+1
+
         sleep(0.5)
 
         # Выбрать дату
